@@ -1,0 +1,23 @@
+/* Mantenha os estilos existentes e ajuste apenas onde há hover */
+
+/* Exemplo de tabela */
+.alunos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.alunos-table th, .alunos-table td {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+.alunos-table th {
+  background-color: #f2f2f2;
+}
+
+/* Remova o estilo de hover para evitar mudanças de cor */
+.alunos-table td:hover {
+  background-color: transparent; /* Ou a cor de fundo desejada */
+}

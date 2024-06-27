@@ -1,0 +1,24 @@
+{
+  "Alunos": [
+    {
+      "id": null,
+      "nome": "guigas",
+      "identificacao": "1313",
+      "senha": "12313",
+      "category_id": "1"
+    }
+  ],
+  "Professores": [],
+  "Disciplinas": [],
+  "categories": [
+    {
+      "id": "1",
+      "name": "Aluno"
+    },
+    {
+      "id": "2",
+      "name": "Professor"
+    }
+  ],
+  "nextAlunoId": 1
+}
