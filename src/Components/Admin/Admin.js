@@ -9,14 +9,12 @@ const Admin = () => {
   const [formData, setFormData] = useState({
     id: null,
     nome: '',
-    identificacao: '',
+    matricula: '',
     senha: '',
-    category_id: '',
   });
-  const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    fetch("http://localhost:5000/Alunos", {
+  const fetchAlunos = () => {
+    fetch("http://localhost:8080/aluno/all", {
       method: "GET",
       headers: {
         'Content-Type': 'application/json',
@@ -24,57 +22,39 @@ const Admin = () => {
     })
       .then((resp) => resp.json())
       .then((data) => {
-        console.log('Alunos carregados:', data); // Log para verificar os dados carregados
-        setAlunos(data);
+        const filteredAlunos = data
+          .filter(aluno => aluno.id !== null) // Remove alunos com ID null
+          .sort((a, b) => a.id - b.id); // Ordena os alunos por ID
+        setAlunos(filteredAlunos);
       })
       .catch(err => console.log(err));
-  }, []);
-
-  useEffect(() => {
-    fetch("http://localhost:5000/categories", {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((resp) => resp.json())
-      .then((data) => {
-        console.log('Categorias carregadas:', data); // Log para verificar os dados carregados
-        setCategories(data);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+  };
 
   const createPost = (alunoData) => {
-    fetch("http://localhost:5000/Alunos", {
+    const newId = alunos.length > 0 ? Math.max(...alunos.map(aluno => aluno.id)) + 1 : 1;
+    const newAluno = { ...alunoData, id: newId };
+    fetch("http://localhost:8080/aluno", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(alunoData),
+      body: JSON.stringify(newAluno),
     })
       .then((resp) => resp.json())
       .then((data) => {
-        console.log('Aluno criado:', data); // Log para verificar o aluno criado
-        setAlunos([...alunos, data]);
+        setAlunos([...alunos, newAluno]);
         setFormData({
           id: null,
           nome: '',
-          identificacao: '',
+          matricula: '',
           senha: '',
-          category_id: '',
         });
       })
       .catch(err => console.log(err));
   };
 
-  const handleBackToLogin = () => {
-    navigate('/');
-  };
-
   const handleDelete = (id) => {
-    console.log('Deletando aluno com id:', id); 
-    fetch(`http://localhost:5000/Alunos/${id}`, {
+    fetch(`http://localhost:8080/aluno/${id}`, {
       method: "DELETE",
       headers: {
         'Content-Type': 'application/json',
@@ -82,10 +62,8 @@ const Admin = () => {
     })
       .then((resp) => {
         if (resp.ok) {
-          console.log(`Aluno com id ${id} deletado com sucesso`); // Log para verificar se a exclusão foi bem-sucedida
           setAlunos(alunos.filter(aluno => aluno.id !== id));
         } else {
-          console.log('Erro ao deletar o aluno'); // Log para verificar erro na exclusão
           throw new Error('Erro ao deletar o aluno');
         }
       })
@@ -93,44 +71,48 @@ const Admin = () => {
   };
 
   const handleEdit = (aluno) => {
-    console.log('Editando aluno:', aluno); // Log para verificar o aluno a ser editado
     setFormData({
       id: aluno.id,
       nome: aluno.nome,
-      identificacao: aluno.identificacao,
+      matricula: aluno.matricula,
       senha: '', // Limpar senha ao editar ou manter conforme necessário
-      category_id: aluno.category_id,
     });
   };
 
   const handleUpdate = () => {
-    console.log('Atualizando aluno com dados:', formData); // Log para verificar os dados a serem atualizados
-    fetch(`http://localhost:5000/Alunos/${formData.id}`, {
+    const updatedAluno = { ...formData };
+    if (!updatedAluno.senha) {
+      delete updatedAluno.senha; // Remove senha se estiver vazia
+    }
+
+    fetch(`http://localhost:8080/aluno/${formData.id}`, {
       method: "PUT",
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(updatedAluno),
     })
-      .then((resp) => resp.json())
+      .then((resp) => {
+        if (resp.ok) {
+          return resp.json();
+        }
+        throw new Error('Erro ao atualizar o aluno');
+      })
       .then((data) => {
-        console.log('Resposta do servidor ao atualizar:', data); // Log para verificar a resposta do servidor
-        setAlunos(alunos.map(aluno => (aluno.id === data.id ? data : aluno)));
+        const updatedAlunos = alunos.map(aluno => (aluno.id === formData.id ? data : aluno));
+        setAlunos(updatedAlunos);
         setFormData({
           id: null,
           nome: '',
-          identificacao: '',
+          matricula: '',
           senha: '',
-          category_id: '',
         });
       })
       .catch(err => console.log(err));
   };
 
-  const getCategoryName = (categoryId) => {
-    if (categoryId === '1') return 'Aluno';
-    if (categoryId === '2') return 'Professor';
-    return 'Categoria Desconhecida';
+  const handleBackToLogin = () => {
+    navigate('/');
   };
 
   return (
@@ -145,33 +127,37 @@ const Admin = () => {
           />
         </div>
         <button className='voltar' onClick={handleBackToLogin}>Voltar</button>
+        
+        <button className='fetch-alunos' onClick={fetchAlunos}>Mostrar Alunos</button>
 
-        <h2>Lista de Alunos</h2>
-        <table className='alunos-table'>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Identificador</th>
-              <th>Categoria</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {alunos.map((aluno) => (
-              <tr key={aluno.id} style={{ backgroundColor: 'white' }}>
-                <td>{aluno.id}</td>
-                <td>{aluno.nome}</td>
-                <td>{aluno.identificacao}</td>
-                <td>{getCategoryName(aluno.category_id)}</td>
-                <td>
-                  <button onClick={() => handleEdit(aluno)}>Editar</button>
-                  <button onClick={() => handleDelete(aluno.id)}>Excluir</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {alunos.length > 0 && (
+          <div>
+            <h2>Lista de Alunos</h2>
+            <table className='alunos-table'>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Matrícula</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {alunos.map((aluno) => (
+                  <tr key={aluno.id}>
+                    <td>{aluno.id}</td>
+                    <td>{aluno.nome}</td>
+                    <td>{aluno.matricula}</td>
+                    <td>
+                      <button onClick={() => handleEdit(aluno)}>Editar</button>
+                      <button onClick={() => handleDelete(aluno.id)}>Excluir</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </header>
   );

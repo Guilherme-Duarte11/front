@@ -9,9 +9,8 @@ const Formulario = ({ onSubmit, initialData }) => {
   const [formData, setFormData] = useState({
     id: null,
     nome: '',
-    identificacao: '',
+    matricula: '',
     senha: '',
-    category_id: '',
     ...initialData, // Preencher os dados iniciais se existirem
   });
 
@@ -32,9 +31,8 @@ const Formulario = ({ onSubmit, initialData }) => {
     setFormData({
       id: initialData?.id || null,
       nome: initialData?.nome || '',
-      identificacao: initialData?.identificacao || '',
+      matricula: initialData?.matricula || '',
       senha: '', // Limpar o campo de senha ou manter conforme necessário
-      category_id: initialData?.category_id || '',
     });
   }, [initialData]);
 
@@ -51,9 +49,8 @@ const Formulario = ({ onSubmit, initialData }) => {
     setFormData({
       id: null,
       nome: '',
-      identificacao: '',
+      matricula: '',
       senha: '',
-      category_id: '',
     });
   };
 
@@ -70,9 +67,9 @@ const Formulario = ({ onSubmit, initialData }) => {
       <Input
         type="text"
         text="Identificador: "
-        name="identificacao"
+        name="matricula"
         placeholder="Insira o CPF ou a Matrícula"
-        value={formData.identificacao}
+        value={formData.matricula}
         onChange={handleChange}
       />
       <Input
@@ -81,13 +78,6 @@ const Formulario = ({ onSubmit, initialData }) => {
         name="senha"
         placeholder="Crie a senha do Usuário"
         value={formData.senha}
-        onChange={handleChange}
-      />
-      <Select
-        name="category_id"
-        text="Selecione a categoria"
-        options={categories}
-        value={formData.category_id}
         onChange={handleChange}
       />
       <Gravar text={formData.id ? "Atualizar" : "Cadastrar"} />
