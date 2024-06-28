@@ -126,9 +126,8 @@ const Admin = () => {
             initialData={formData}
           />
         </div>
-        <button className='voltar' onClick={handleBackToLogin}>Voltar</button>
-        
-        <button className='fetch-alunos' onClick={fetchAlunos}>Mostrar Alunos</button>
+        <button className='button voltar' onClick={handleBackToLogin}>Voltar</button>
+        <button className='button fetch-alunos' onClick={fetchAlunos}>Mostrar Alunos</button>
 
         {alunos.length > 0 && (
           <div>
@@ -149,8 +148,8 @@ const Admin = () => {
                     <td>{aluno.nome}</td>
                     <td>{aluno.matricula}</td>
                     <td>
-                      <button onClick={() => handleEdit(aluno)}>Editar</button>
-                      <button onClick={() => handleDelete(aluno.id)}>Excluir</button>
+                      <button className='button' onClick={() => handleEdit(aluno)}>Editar</button>
+                      <button className='button' onClick={() => handleDelete(aluno.id)}>Excluir</button>
                     </td>
                   </tr>
                 ))}
