@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Admin.css';
 import Formulario from '../Formulario/Formulario';
@@ -6,159 +6,175 @@ import Formulario from '../Formulario/Formulario';
 const Admin = () => {
   const navigate = useNavigate();
   const [alunos, setAlunos] = useState([]);
+  const [professores, setProfessores] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
     nome: '',
     matricula: '',
     senha: '',
+    tipo: 'aluno'
   });
+  const [showProfessores, setShowProfessores] = useState(false);
+
+  useEffect(() => {
+    fetchAlunos();
+    fetchProfessores();
+  }, []);
 
   const fetchAlunos = () => {
-    fetch("http://localhost:8080/aluno/all", {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    fetch("http://localhost:8080/aluno/all")
       .then((resp) => resp.json())
-      .then((data) => {
-        const filteredAlunos = data
-          .filter(aluno => aluno.id !== null) // Remove alunos com ID null
-          .sort((a, b) => a.id - b.id); // Ordena os alunos por ID
-        setAlunos(filteredAlunos);
-      })
-      .catch(err => console.log(err));
+      .then((data) => setAlunos(data))
+      .catch((err) => console.log(err));
   };
 
-  const createPost = (alunoData) => {
-    const newId = alunos.length > 0 ? Math.max(...alunos.map(aluno => aluno.id)) + 1 : 1;
-    const newAluno = { ...alunoData, id: newId };
-    fetch("http://localhost:8080/aluno", {
+  const fetchProfessores = () => {
+    fetch("http://localhost:8080/professor/all")
+      .then((resp) => resp.json())
+      .then((data) => setProfessores(data))
+      .catch((err) => console.log(err));
+  };
+
+  const createPost = (data) => {
+    const endpoint = data.tipo === 'aluno' ? "aluno/salvar" : "professor/salvar";
+
+    fetch(`http://localhost:8080/${endpoint}`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newAluno),
+      body: JSON.stringify(data),
     })
-      .then((resp) => resp.json())
-      .then((data) => {
-        setAlunos([...alunos, newAluno]);
+    .then((resp) => {
+      if (resp.ok) {
+        fetchAlunos();
+        fetchProfessores();
         setFormData({
           id: null,
           nome: '',
           matricula: '',
           senha: '',
+          tipo: 'aluno'
         });
-      })
-      .catch(err => console.log(err));
-  };
-
-  const handleDelete = (id) => {
-    fetch(`http://localhost:8080/aluno/${id}`, {
-      method: "DELETE",
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      } else {
+        throw new Error('Erro ao criar o usuário');
+      }
     })
-      .then((resp) => {
-        if (resp.ok) {
-          setAlunos(alunos.filter(aluno => aluno.id !== id));
-        } else {
-          throw new Error('Erro ao deletar o aluno');
-        }
-      })
-      .catch(err => console.log(err));
-  };
-
-  const handleEdit = (aluno) => {
-    setFormData({
-      id: aluno.id,
-      nome: aluno.nome,
-      matricula: aluno.matricula,
-      senha: '', // Limpar senha ao editar ou manter conforme necessário
-    });
-  };
-
-  const handleUpdate = () => {
-    const updatedAluno = { ...formData };
-    if (!updatedAluno.senha) {
-      delete updatedAluno.senha; // Remove senha se estiver vazia
-    }
-
-    fetch(`http://localhost:8080/aluno/${formData.id}`, {
-      method: "PUT",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedAluno),
-    })
-      .then((resp) => {
-        if (resp.ok) {
-          return resp.json();
-        }
-        throw new Error('Erro ao atualizar o aluno');
-      })
-      .then((data) => {
-        const updatedAlunos = alunos.map(aluno => (aluno.id === formData.id ? data : aluno));
-        setAlunos(updatedAlunos);
-        setFormData({
-          id: null,
-          nome: '',
-          matricula: '',
-          senha: '',
-        });
-      })
-      .catch(err => console.log(err));
+    .catch((err) => console.log(err));
   };
 
   const handleBackToLogin = () => {
     navigate('/');
   };
 
-  return (
-    <header>
-      <div className='admin-container'>
-        <div className='titles'>
-          <h1>Página do Administrador</h1>
-          <h1 className='subtitulo'>Adicionar Usuário</h1>
-          <Formulario
-            onSubmit={formData.id ? handleUpdate : createPost}
-            initialData={formData}
-          />
-        </div>
-        <button className='button voltar' onClick={handleBackToLogin}>Voltar</button>
-        <button className='button fetch-alunos' onClick={fetchAlunos}>Mostrar Alunos</button>
+  const handleEditAluno = (aluno) => {
+    setFormData({
+      id: aluno.id,
+      nome: aluno.nome,
+      matricula: aluno.matricula,
+      senha: '',
+      tipo: 'aluno'
+    });
+  };
 
-        {alunos.length > 0 && (
-          <div>
-            <h2>Lista de Alunos</h2>
-            <table className='alunos-table'>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome</th>
-                  <th>Matrícula</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alunos.map((aluno) => (
-                  <tr key={aluno.id}>
-                    <td>{aluno.id}</td>
-                    <td>{aluno.nome}</td>
-                    <td>{aluno.matricula}</td>
-                    <td>
-                      <button className='button' onClick={() => handleEdit(aluno)}>Editar</button>
-                      <button className='button' onClick={() => handleDelete(aluno.id)}>Excluir</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+  const handleDeleteAluno = (id) => {
+    fetch(`http://localhost:8080/aluno/${id}`, {
+      method: 'DELETE',
+    })
+    .then(() => fetchAlunos())
+    .catch((err) => console.log(err));
+  };
+
+  const handleEditProfessor = (professor) => {
+    setFormData({
+      id: professor.id,
+      nome: professor.nome,
+      CPF: professor.CPF,
+      senha: '',
+      tipo: 'professor'
+    });
+  };
+
+  const handleDeleteProfessor = (id) => {
+    fetch(`http://localhost:8080/professor/${id}`, {
+      method: 'DELETE',
+    })
+    .then(() => fetchProfessores())
+    .catch((err) => console.log(err));
+  };
+
+  const toggleTables = () => {
+    setShowProfessores(!showProfessores);
+  };
+
+  return (
+    <div className='admin-container'>
+      <div className='titles'>
+        <h1>Página do Administrador</h1>
+        <h1 className='subtitulo'>Adicionar Usuário</h1>
+        <Formulario onSubmit={createPost} initialData={formData} />
       </div>
-    </header>
+      <button className='button voltar' onClick={handleBackToLogin}>Voltar</button>
+      <button className='button toggle-tables' onClick={toggleTables}>
+        {showProfessores ? 'Mostrar Alunos' : 'Mostrar Professores'}
+      </button>
+
+      {showProfessores ? (
+        <div>
+          <h2>Lista de Professores</h2>
+          <table className='professores-table'>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {professores.map((professor) => (
+                <tr key={professor.id}>
+                  <td>{professor.id}</td>
+                  <td>{professor.nome}</td>
+                  <td>{professor.CPF}</td>
+                  <td>
+                    <button className='button' onClick={() => handleEditProfessor(professor)}>Editar</button>
+                    <button className='button' onClick={() => handleDeleteProfessor(professor.id)}>Excluir</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div>
+          <h2>Lista de Alunos</h2>
+          <table className='alunos-table'>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alunos.map((aluno) => (
+                <tr key={aluno.id}>
+                  <td>{aluno.id}</td>
+                  <td>{aluno.nome}</td>
+                  <td>{aluno.matricula}</td>
+                  <td>
+                    <button className='button' onClick={() => handleEditAluno(aluno)}>Editar</button>
+                    <button className='button' onClick={() => handleDeleteAluno(aluno.id)}>Excluir</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 };
 

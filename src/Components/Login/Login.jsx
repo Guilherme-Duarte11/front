@@ -9,24 +9,24 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleEntry = (matricula, senha) => {
-    fetch("http://localhost:8080/aluno/login", {
-      method: "POST",
+    fetch(`http://localhost:8080/aluno/login?matricula=${matricula}&senha=${senha}`, {
+      method: "GET",
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ matricula, senha }) // Envia a matricula e a senha para o backend
+      }
     })
       .then((resp) => {
         if (!resp.ok) {
           throw new Error('Login falhou');
         }
-        return resp.json();
+        return resp.json(); // Obtém a resposta como JSON
       })
       .then((data) => {
-        if (data && data.id !== null) {
+        if (data.nome) {
+          localStorage.setItem('nomeAluno', data.nome); // Armazena o nome do aluno localmente
           navigate('/welcome'); // Redireciona para a página de boas-vindas
         } else {
-          alert('Credenciais inválidas');
+          throw new Error('Nome do aluno não encontrado');
         }
       })
       .catch(err => console.log(err));
@@ -48,7 +48,7 @@ const Login = () => {
         <div className="input-field">
           <input
             type="number"
-            placeholder='Informe seu CPF ou sua Matrícula'
+            placeholder='Informe sua Matrícula'
             onChange={(e) => setMatricula(e.target.value)}
             value={matricula}
           />
@@ -71,7 +71,7 @@ const Login = () => {
           <a href="#">Esqueceu a senha?</a>
         </div>
         <div className="botoes">
-          <button type="submit">Entrar</button> {/* Botão com type="submit" */}
+          <button type="submit">Entrar</button> {}
         </div>
         <div className="ADM">
           <button type="button" onClick={handleAdminLogin}>Administrador</button>

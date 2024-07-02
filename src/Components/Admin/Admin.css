@@ -1,8 +1,9 @@
-/* Estilo da tabela */
+/* Estilo da tabela de alunos */
 .alunos-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background-color: #ffffff; /* fundo branco */
 }
 
 .alunos-table th, .alunos-table td {
@@ -15,11 +16,33 @@
   background-color: #f2f2f2;
 }
 
-.alunos-table td:hover {
-  background-color: transparent; 
+.alunos-table tr:hover {
+  background-color: #e0e0e0; /* escurece um pouco ao passar o mouse */
 }
 
-/* Estilo dos botões */
+/* Estilo da tabela de professores */
+.professores-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #ffffff; /* fundo branco */
+}
+
+.professores-table th, .professores-table td {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+.professores-table th {
+  background-color: #f2f2f2;
+}
+
+.professores-table tr:hover {
+  background-color: #e0e0e0; /* escurece um pouco ao passar o mouse */
+}
+
+/* Estilo dos botões (mantido conforme original) */
 .button {
   background-color: #4CAF50;
   border: none;

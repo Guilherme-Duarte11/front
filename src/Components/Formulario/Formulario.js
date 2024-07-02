@@ -1,61 +1,63 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Formulario.css'; // Mantendo o CSS original
+import styles from './Formulario.css';
 import Input from '../Input/Input';
 import Select from '../Select/Select';
 import Gravar from '../Submit/Gravar';
 
 const Formulario = ({ onSubmit, initialData }) => {
-  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
     nome: '',
-    matricula: '',
+    identificador: '', 
     senha: '',
-    ...initialData, // Preencher os dados iniciais se existirem
+    tipo: 'aluno',
+    ...initialData,
   });
 
   useEffect(() => {
-    fetch("http://localhost:5000/categories", {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((resp) => resp.json())
-      .then((data) => {
-        setCategories(data);
-      })
-      .catch((err) => console.log(err));
-
-    // Resetar o formulário quando initialData mudar (pode não ser necessário em todos os casos)
     setFormData({
-      id: initialData?.id || null,
-      nome: initialData?.nome || '',
-      matricula: initialData?.matricula || '',
-      senha: '', // Limpar o campo de senha ou manter conforme necessário
+      ...initialData,
+      senha: ''
     });
   }, [initialData]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    
+    if (name === 'tipo') {
+      const identificadorName = value === 'aluno' ? 'matricula' : 'cpf';
+      setFormData({
+        ...formData,
+        tipo: value,
+        identificador: '',
+        [identificadorName]: '',
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
-    setFormData({
-      id: null,
-      nome: '',
-      matricula: '',
-      senha: '',
-    });
   };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <Select
+        text="Tipo de Usuário: "
+        name="tipo"
+        options={[
+          { value: 'aluno', text: 'Aluno' },
+          { value: 'professor', text: 'Professor' }
+        ]}
+        value={formData.tipo}
+        onChange={handleChange}
+      />
       <Input
         type="text"
         text="Nome: "
@@ -64,14 +66,26 @@ const Formulario = ({ onSubmit, initialData }) => {
         value={formData.nome}
         onChange={handleChange}
       />
-      <Input
-        type="text"
-        text="Identificador: "
-        name="matricula"
-        placeholder="Insira o CPF ou a Matrícula"
-        value={formData.matricula}
-        onChange={handleChange}
-      />
+      {formData.tipo === 'aluno' && (
+        <Input
+          type="text"
+          text="Matrícula: "
+          name="matricula"
+          placeholder="Insira a matrícula do Aluno"
+          value={formData.matricula}
+          onChange={handleChange}
+        />
+      )}
+      {formData.tipo === 'professor' && (
+        <Input
+          type="text"
+          text="CPF: "
+          name="cpf"
+          placeholder="Insira o CPF do Professor"
+          value={formData.cpf}
+          onChange={handleChange}
+        />
+      )}
       <Input
         type="password"
         text="Senha: "
